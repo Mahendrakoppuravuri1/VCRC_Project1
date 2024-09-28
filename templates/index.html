@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition</title>
+    <style>
+        #video {
+            display: block;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        #startButton {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Face Recognition System</h1>
+    <video id="video" autoplay></video>
+    <button id="startButton">Start Face Recognition</button>
+
+    <script>
+        const video = document.getElementById('video');
+        const startButton = document.getElementById('startButton');
+
+        // Access the camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(error => {
+                console.error('Error accessing the camera: ', error);
+            });
+
+        startButton.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => {
+                const formData = new FormData();
+                formData.append('image', blob);
+
+                fetch('/recognize', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.result);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
